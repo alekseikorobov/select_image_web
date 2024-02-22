@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>select images</title>
+  <style>
+    #body {
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .status_bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #is_selected {
+      width: 200px;
+      display: inline-block;
+    }
+    #list_hotel{
+      display: inline-block;
+      vertical-align: top;
+      width: 350px;
+      text-align: justify;
+    }
+  </style>
+</head>
+
+<body id="body">
+  <div class="status_bar">
+    <div style="display: inline-block;">
+      <label for="assigne">Выбрать исполнителя</label>
+      <select id="assigne" onchange="select_assigne(this)">
+        <option value=""></option>
+        <option value="Алексей">Алексей</option>
+        <option value="Даниил">Даниил</option>
+      </select>
+    </div>
+    <div style="display: inline-block;">
+      <p id="is_selected"></p>
+    </div>
+  </div>
+  
+  
+  <p id="title"></p>
+  
+  
+  <div>
+    <div id="list_hotel">
+
+    </div>
+    <img id="image" style="width: 600px;display: inline-block;"/>
+  </div>
+  <br/>
+
+  <div id="main" style="display: none;">
+    <p id="result"></p>
+    <button onclick="save_to_file()">Donwlod</button>
+    <p style="color: gray;">Листать стрелками, цифра 1 для выбора</p>
+  </div>
+
+</body>
+
+<script>
+  let image = document.getElementById('image')
+  let body = document.getElementById('body')
+  let is_selected = document.getElementById('is_selected')
+  let title = document.getElementById('title')
+  let result = document.getElementById('result')
+  let list_hotel = document.getElementById('list_hotel')
+  let main = document.getElementById('main')
+  let assigne = document.getElementById('assigne')
+
+
+
+  function save_to_file() {
+    const rows = [
+      //["name1", "city1", "some other info"],
+      //["name2", "city2", "more info"]
+    ];
+
+    for (const obj_select of images.filter((e) => e.selected)) {
+      ////console.log(obj_select)
+      rows.push([obj_select.url])
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + rows.map(e => e.join(",")).join("\n");
+
+    var encodedUri = encodeURI(csvContent);
+    window.open(encodedUri);
+
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "my_data.csv");
+    document.body.appendChild(link); // Required for FF
+
+    //link.click(); // This will download the data file named "my_data.csv".
+  }
+
+  let images_all = [
+    {id:1, url: 'https://avatars.mds.yandex.net/get-altay/5527230/2a00000186db6d147dd6687677b81ff314ee/XXXL', city: 'Анапа', transaction_info_norm: 'hotel1', selected: false, tag_name: 'Меню', assigne: 'Алексей'},
+    {id:2, url: 'https://avatars.mds.yandex.net/get-altay/8075227/2a00000186db6d182de9f5191efbabe8ff28/XXXL', city: 'Анапа', transaction_info_norm: 'hotel1', selected: false, tag_name: 'Снаружи', assigne: 'Алексей' },
+    {id:3, url: 'https://avatars.mds.yandex.net/get-altay/1489947/2a00000186556203ba38724fa4336a69df36/XXXL', city: 'Анапа1', transaction_info_norm: 'hotel2', selected: false, tag_name: 'Оборудование', assigne: 'Алексей' },
+  ]
+
+  for(const obj of images_all){
+    obj.key = obj.city+'____'+obj.transaction_info_norm
+  }
+
+  let images_assigne = []
+  let images_hotels = []
+  let list_hotels = []
+  let list_hotels_a_elemens = []
+  let curr_selected_hotel = null
+  let curr_selected_hotel_index = null
+
+  function clear(){
+    images_assigne = []
+    images_hotels = []
+    list_hotels_a_elemens = []
+    curr_selected_hotel = null
+    curr_selected_hotel_index = null
+
+    image.src = null
+    is_selected.innerHTML = null
+    title.innerHTML = null
+    result.innerHTML = null
+    main.style="display: none;"
+
+  }
+
+  function select_hotel(obj, key, index){
+    if(curr_selected_hotel != null){
+      curr_selected_hotel.style=''
+    }
+    curr_selected_hotel_index = index
+    obj.style='font-weight: bold;'
+    curr_selected_hotel = obj
+    
+    images_hotels = images_assigne.filter(e=>e.key == key)
+    
+    curr_index = 0
+    show_image(curr_index)
+  }
+  function select_hotel_by_index(index){
+    select_hotel(list_hotels_a_elemens[index],list_hotels[index].key,index)
+  }
+
+  function show_hotel_list(){
+    list_hotel.innerHTML = ''
+    index = 0
+    for(const hotel_obj of list_hotels){
+      // const style = ''
+      // if(hotel_obj.is_active){
+      //   style='style="font-weight: bold;"'
+      // }
+      let text = `${hotel_obj.city} ${hotel_obj.hotel} ( ${hotel_obj.selected_count} /  ${hotel_obj.all_count})`
+
+      list_hotel.innerHTML += `<a href='#' onclick="select_hotel(this,'${hotel_obj.key}',${index})">${text}</a><br>`
+    }
+
+    list_hotels_a_elemens = list_hotel.querySelectorAll('a')
+
+    if(list_hotels.length>0){
+
+      select_hotel_by_index(0)
+    }
+    else{
+      list_hotel.innerHTML = 'нет картинок'
+      clear()
+    }
+  }
+
+  function init_hotels(){
+    list_hotels = []
+    let hotel_groups = Object.groupBy(images_assigne, ({ key }) => key)
+    for (const key of Object.keys(hotel_groups)) {
+      //console.log(gr['Анапа'],key)
+      const elements = hotel_groups[key];
+      let city = key.split('____')[0]
+      let hotel = key.split('____')[1]
+      list_hotels.push({
+        key:key,
+        city:city,
+        hotel:hotel,
+        all_count:elements.length,
+        selected_count:0,
+        is_active:false
+      })
+    }
+
+    show_hotel_list()
+  }
+
+  function select_assigne(e) {
+    const val = e[e.selectedIndex].value;
+    if (val != '') {
+      main.style = ''
+      images_assigne = images_all.filter(e => e.assigne == val)
+      assigne.blur(); //снять фокус, чтобы горячие клавишы работали
+    }
+
+    init_hotels()
+    
+  }
+  function view_hotels() {
+    let hotel_groups = Object.groupBy(images, ({ transaction_info_norm }) => transaction_info_norm)
+    for (const key of Object.keys(hotel_groups)) {
+      //console.log(gr['Анапа'],key)
+      const elements = hotel_groups[key];
+
+      const _selected_list = elements.filter((e) => e.selected)
+      //console.log(elements)
+      list_hotel.innerHTML += key + ' (' + _selected_list.length + ' / ' + elements.length + ') ' + '<br>'
+    }
+  }
+
+
+  result.innerHTML = 'Выбрано - 0'
+
+  function show_image(index) {
+    let obj = images_hotels[index]
+    image.src = obj.url
+    title.innerHTML = (index + 1).toString() + ' / ' + images_hotels.length.toString() + '  ' + obj.city + ' (' + obj.tag_name + ') ' + obj.transaction_info_norm
+    if (obj.selected == true) {
+      is_selected.innerHTML = 'Выбрано'
+      is_selected.style = 'color:green'
+    } else {
+      is_selected.innerHTML = 'не выбрано'
+      is_selected.style = 'color:groy'
+    }
+  }
+  function mark_select(index) {
+    images_hotels[index].selected = !images_hotels[index].selected
+    
+    let hotel_obj = list_hotels[curr_selected_hotel_index]
+    hotel_obj.selected_count = images_hotels.filter((e) => e.selected).length
+
+    list_hotels_a_elemens[curr_selected_hotel_index].text = `${hotel_obj.city} ${hotel_obj.hotel} ( ${hotel_obj.selected_count} /  ${hotel_obj.all_count})`
+
+    // result.innerHTML = 'Выбрано - ' + images_hotels.filter((e) => e.selected).length
+
+    // let gr = Object.groupBy(images_hotels, ({ city }) => city)
+    
+    // for (const key of Object.keys(gr)) {
+      
+    //   const elements = gr[key];
+      
+    //   result.innerHTML += '<br>' + key + ' - ' + elements.filter((e) => e.selected).length
+    // }
+    show_image(index)
+  }
+
+
+
+  function onkeyup(e) {
+    if (e.key == 'ArrowLeft') {
+      if (curr_index > 0) {
+        curr_index--;
+      }
+      show_image(curr_index)
+    }
+    else if (e.key == 'ArrowRight') {
+      if (curr_index < images_hotels.length - 1) {
+        curr_index++;
+      }
+      show_image(curr_index)
+    }
+    else if (e.key == 'ArrowDown') {
+      if(curr_selected_hotel_index < list_hotels.length-1){
+        curr_selected_hotel_index++;
+        select_hotel_by_index(curr_selected_hotel_index)
+      }
+    }
+    else if (e.key == 'ArrowUp') {
+      if(curr_selected_hotel_index>0){ 
+        curr_selected_hotel_index--;
+        select_hotel_by_index(curr_selected_hotel_index)
+      }
+    }
+    else if (e.key == '1') {
+      mark_select(curr_index)
+    } else {
+      console.log(e)
+    }
+  }
+
+  body.addEventListener("keyup", onkeyup);
+
+  let selected_images = [
+
+  ]
+
+</script>
+
+</html>
