@@ -21,13 +21,22 @@
       width: 200px;
       display: inline-block;
     }
-    #list_hotel{
+    #list_hotel,#list_tags{
       display: inline-block;
       vertical-align: top;
-      width: 350px;
+      /* width: 350px; */
       text-align: justify;
       height: 450px;
       overflow-y: auto;
+    }
+    #list_hotel{
+      width: 350px;
+    }
+    #list_tags{
+      width: 170px;
+    }
+    .good_selected{
+      color: green;
     }
   </style>
   <script src="images_all.js"></script>
@@ -57,9 +66,8 @@
   
   
   <div>
-    <div id="list_hotel">
-
-    </div>
+    <div id="list_hotel"></div>
+    <div id="list_tags"></div>
     <img id="image" style="width: 600px;display: inline-block;"/>
   </div>
   <br/>
@@ -74,14 +82,15 @@
 </body>
 
 <script>
-  let image = document.getElementById('image')
-  let body = document.getElementById('body')
-  let is_selected = document.getElementById('is_selected')
-  let title = document.getElementById('title')
-  let result = document.getElementById('result')
-  let list_hotel = document.getElementById('list_hotel')
-  let main = document.getElementById('main')
-  let assigne = document.getElementById('assigne')
+  let image_element = document.getElementById('image')
+  let body_element = document.getElementById('body')
+  let is_selected_element = document.getElementById('is_selected')
+  let title_element = document.getElementById('title')
+  let result_element = document.getElementById('result')
+  let list_hotel_element = document.getElementById('list_hotel')
+  let list_tag_element = document.getElementById('list_tags')
+  let main_element = document.getElementById('main')
+  let assigne_element = document.getElementById('assigne')
 
 
 
@@ -113,16 +122,26 @@
 
   for(const obj of images_all){
     obj.key = obj.city+'____'+obj.transaction_info_norm
+    if(obj.tag_name == '') {
+      obj.tag_name = 'Прочее'
+    }
+    obj.key_tag = obj.city+'____'+obj.transaction_info_norm+'____'+obj.tag_name
   }
 
   let images_assigne = []
   let images_hotels = []
+  let images_tags = []
   let list_hotels = []
+  let list_tags = []
   let list_hotels_a_elemens = []
+  let list_tags_a_elemens = []
   let curr_selected_hotel = null
   let curr_selected_hotel_index = null
-  result.innerHTML = 'Выбрано - 0'
+  result_element.innerHTML = 'Выбрано - 0'
   let selected_image_ids = []
+  let curr_selected_tag = null;
+  let curr_selected_tag_index = null
+
 
   function clear(){
     images_assigne = []
@@ -131,12 +150,69 @@
     curr_selected_hotel = null
     curr_selected_hotel_index = null
 
-    image.removeAttribute('src')
-    is_selected.innerHTML = null
-    title.innerHTML = null
-    result.innerHTML = null
-    main.style="display: none;"
-    result.innerHTML = 'Выбрано - 0'
+    image_element.removeAttribute('src')
+    is_selected_element.innerHTML = null
+    title_element.innerHTML = null
+    result_element.innerHTML = null
+    main_element.style="display: none;"
+    result_element.innerHTML = 'Выбрано - 0'
+  }
+
+
+  function select_tag(obj,key_tag,index){
+    if(curr_selected_tag != null){
+      curr_selected_tag.style=''
+    }
+    curr_selected_tag_index = index
+    obj.style='font-weight: bold;'
+    curr_selected_tag = obj
+    
+    images_tags = images_assigne.filter(e=>e.key_tag == key_tag)
+    
+    //init_tags()
+    curr_index = 0
+    show_image(curr_index)
+  }
+  function select_tag_by_index(index){
+    select_tag(list_tags_a_elemens[index],list_tags[index].key,index)
+  }
+
+  function show_tag_list(){
+    list_tag_element.innerHTML = ''
+    index = 0
+    for(const tag_obj of list_tags){
+      let text = `${tag_obj.tag} ( ${tag_obj.selected_count} /  ${tag_obj.all_count})`;
+      let class_name = ''
+
+      list_tag_element.innerHTML += `<a href='#' class='${class_name}' onclick="select_tag(this,'${tag_obj.key}',${index})">${text}</a><br>`
+      index++
+    }
+
+    list_tags_a_elemens = list_tag_element.querySelectorAll('a')
+
+    if(list_tags.length>0){
+      select_tag_by_index(0)
+    }
+  }
+  function init_tags(){
+    list_tags = []
+    let tag_groups = Object.groupBy(images_hotels, ({ key_tag }) => key_tag)
+    for (const key of Object.keys(tag_groups)) {
+      const elements = tag_groups[key];
+      let city = key.split('____')[0]
+      let hotel = key.split('____')[1]
+      let tag = key.split('____')[2]
+      list_tags.push({
+        key:key,
+        city:city,
+        hotel:hotel,
+        tag:tag,
+        all_count:elements.length,
+        selected_count:elements.filter(e=>e.selected).length,
+        is_active:false
+      })
+    }
+    show_tag_list()
   }
 
   function select_hotel(obj, key, index){
@@ -149,32 +225,35 @@
     
     images_hotels = images_assigne.filter(e=>e.key == key)
     
-    curr_index = 0
-    show_image(curr_index)
+    init_tags()
   }
   
   function select_hotel_by_index(index){
     select_hotel(list_hotels_a_elemens[index],list_hotels[index].key,index)
   }
-
+  
   function show_hotel_list(){
-    list_hotel.innerHTML = ''
+    list_hotel_element.innerHTML = ''
     index = 0
     for(const hotel_obj of list_hotels){
       let text = `${hotel_obj.city} ${hotel_obj.hotel} ( ${hotel_obj.selected_count} /  ${hotel_obj.all_count})`
+      let class_name = ''
+      if (hotel_obj.selected_count>=10){
+        class_name = 'good_selected'
+      }
 
-      list_hotel.innerHTML += `<a href='#' onclick="select_hotel(this,'${hotel_obj.key}',${index})">${text}</a><br>`
+      list_hotel_element.innerHTML += `<a href='#' class='${class_name}' onclick="select_hotel(this,'${hotel_obj.key}',${index})">${text}</a><br>`
       index++
     }
 
-    list_hotels_a_elemens = list_hotel.querySelectorAll('a')
+    list_hotels_a_elemens = list_hotel_element.querySelectorAll('a')
 
     if(list_hotels.length>0){
 
       select_hotel_by_index(0)
     }
     else{
-      list_hotel.innerHTML = 'нет картинок'
+      list_hotel_element.innerHTML = 'нет картинок'
       clear()
     }
   }
@@ -199,10 +278,10 @@
   }
 
   function select_assigne(assigne_name) {
-    main.style = ''
-    for(const key of Object.keys(assigne)){
-      if(assigne[key].value == assigne_name){
-        assigne[key].selected = true
+    main_element.style = ''
+    for(const key of Object.keys(assigne_element)){
+      if(assigne_element[key].value == assigne_name){
+        assigne_element[key].selected = true
       }
     }
     images_assigne = images_all.filter(e => e.assigne == assigne_name)
@@ -212,34 +291,45 @@
     const assigne_name = e[e.selectedIndex].value;
     if (assigne_name != '') {
       
-      assigne.blur(); //снять фокус, чтобы горячие клавишы работали
+      assigne_element.blur(); //снять фокус, чтобы горячие клавишы работали
       select_assigne(assigne_name)
       save_assigne(assigne_name)
     }
   }
 
   function show_image(index) {
-    let obj = images_hotels[index]
-    image.src = obj.url
-    title.innerHTML = (index + 1).toString() + ' / ' + images_hotels.length.toString() + '  ' + obj.city + ' (' + obj.tag_name + ') ' + obj.transaction_info_norm
+    let obj = images_tags[index]
+    image_element.src = obj.url
+    title_element.innerHTML = (index + 1).toString() + ' / ' + images_tags.length.toString() + '  ' + obj.city + ' (' + obj.tag_name + ') ' + obj.transaction_info_norm
     if (obj.selected == true) {
-      is_selected.innerHTML = 'Выбрано'
-      is_selected.style = 'color:green'
+      is_selected_element.innerHTML = 'Выбрано'
+      is_selected_element.style = 'color:green'
     } else {
-      is_selected.innerHTML = 'не выбрано'
-      is_selected.style = 'color:groy'
+      is_selected_element.innerHTML = 'не выбрано'
+      is_selected_element.style = 'color:groy'
     }
   }
   
   function mark_select(index) {
-    images_hotels[index].selected = !images_hotels[index].selected
+    images_tags[index].selected = !images_tags[index].selected
     
     let hotel_obj = list_hotels[curr_selected_hotel_index]
     hotel_obj.selected_count = images_hotels.filter((e) => e.selected).length
+    curr_hotels_a_elemens = list_hotels_a_elemens[curr_selected_hotel_index]
+    curr_hotels_a_elemens.text = `${hotel_obj.city} ${hotel_obj.hotel} ( ${hotel_obj.selected_count} /  ${hotel_obj.all_count})`
 
-    list_hotels_a_elemens[curr_selected_hotel_index].text = `${hotel_obj.city} ${hotel_obj.hotel} ( ${hotel_obj.selected_count} /  ${hotel_obj.all_count})`
 
-    result.innerHTML = 'Выбрано - ' + images_assigne.filter((e) => e.selected).length
+    let tag_obj = list_tags[curr_selected_tag_index]
+    tag_obj.selected_count = images_tags.filter((e) => e.selected).length
+    curr_tags_a_elemens = list_tags_a_elemens[curr_selected_tag_index]
+    curr_tags_a_elemens.text =`${tag_obj.tag} ( ${tag_obj.selected_count} /  ${tag_obj.all_count})`;
+    
+    if (hotel_obj.selected_count>=10){
+      curr_hotels_a_elemens.classList.add('good_selected');
+    } else if(curr_hotels_a_elemens.classList.contains('good_selected')){
+      curr_hotels_a_elemens.classList.remove('good_selected');
+    }
+    result_element.innerHTML = 'Выбрано - ' + images_assigne.filter((e) => e.selected).length
 
     selected_image_ids = images_assigne.filter((e) => e.selected).map(e=>e.id)
     //console.log(selected_images)
@@ -263,13 +353,22 @@
       show_image(curr_index)
     }
     else if (e.key == 'ArrowDown') {
-      if(curr_selected_hotel_index < list_hotels.length-1){
+      
+      if(curr_selected_tag_index<list_tags.length-1){
+        curr_selected_tag_index++
+        select_tag_by_index(curr_selected_tag_index)
+      }
+      else if(curr_selected_hotel_index < list_hotels.length-1){
         curr_selected_hotel_index++;
         select_hotel_by_index(curr_selected_hotel_index)
       }
     }
     else if (e.key == 'ArrowUp') {
-      if(curr_selected_hotel_index>0){ 
+      if(curr_selected_tag_index>0){
+        curr_selected_tag_index--;
+        select_tag_by_index(curr_selected_tag_index)
+      }
+      else if(curr_selected_hotel_index>0){ 
         curr_selected_hotel_index--;
         select_hotel_by_index(curr_selected_hotel_index)
       }
@@ -281,7 +380,7 @@
     }
   }
 
-  body.addEventListener("keyup", onkeyup);
+  body_element.addEventListener("keyup", onkeyup);
 
 
   window.onload = on_load_page
@@ -313,7 +412,7 @@
     let _selected_image_ids = localStorage.getItem('selected_image_ids')
     if(_selected_image_ids != null){
       selected_image_ids = _selected_image_ids
-      result.innerHTML = `Выбрано - ${selected_image_ids.length}`
+      result_element.innerHTML = `Выбрано - ${selected_image_ids.length}`
       mark_select_all_images()
     }
 
