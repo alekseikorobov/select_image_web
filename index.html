@@ -38,6 +38,11 @@
     .good_selected{
       color: green;
     }
+    .delete_link{
+      text-decoration: none;
+      color: grey;
+      font-size: small;
+    }
   </style>
   <script src="images_all.js"></script>
 </head>
@@ -65,7 +70,11 @@
   <p id="title"></p>
   
   
-  <div>
+  <div style="display: inline-block;">
+    <div style="text-align: justify;padding: 10px 0px;">
+      <input type="radio" value="active"  id="view_active"  name="view_hotel" onchange="toggle_view_hotels(this)" checked /> <label for="view_active">Активные</label>
+      <input type="radio" value="deleted" id="view_deleted" name="view_hotel" onchange="toggle_view_hotels(this)"/><label for="view_deleted">Удаленные</label>
+    </div>
     <div id="list_hotel"></div>
     <div id="list_tags"></div>
     <img id="image" style="width: 600px;display: inline-block;"/>
@@ -91,6 +100,8 @@
   let list_tag_element = document.getElementById('list_tags')
   let main_element = document.getElementById('main')
   let assigne_element = document.getElementById('assigne')
+  let view_active_element = document.getElementById('view_active') 
+  let view_deleted_element = document.getElementById('view_deleted') 
 
 
 
@@ -141,6 +152,8 @@
   let selected_image_ids = []
   let curr_selected_tag = null;
   let curr_selected_tag_index = null
+  let list_hotels_exclude = []
+  let curr_view_hotel = 'active' //по умолчанию показываются активные отели, но можно переключиться на удаленные (deleted)
 
 
   function clear(){
@@ -156,6 +169,23 @@
     result_element.innerHTML = null
     main_element.style="display: none;"
     result_element.innerHTML = 'Выбрано - 0'
+  }
+
+  //переключатель показывать активные Отели или не активные
+  function toggle_view_hotels(obj){
+
+    let assigne_name = assigne_element.value
+
+    if(obj.value=="active") {
+      curr_view_hotel = obj.value
+      images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) == -1)
+      init_hotels()
+    }
+    if(obj.value=="deleted") {
+      curr_view_hotel = obj.value
+      images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) != -1)
+      init_hotels()
+    }
   }
 
 
@@ -182,9 +212,8 @@
     index = 0
     for(const tag_obj of list_tags){
       let text = `${tag_obj.tag} ( ${tag_obj.selected_count} /  ${tag_obj.all_count})`;
-      let class_name = ''
 
-      list_tag_element.innerHTML += `<a href='#' class='${class_name}' onclick="select_tag(this,'${tag_obj.key}',${index})">${text}</a><br>`
+      list_tag_element.innerHTML += `<a href='#' onclick="select_tag(this,'${tag_obj.key}',${index})">${text}</a><br>`
       index++
     }
 
@@ -232,6 +261,37 @@
     select_hotel(list_hotels_a_elemens[index],list_hotels[index].key,index)
   }
   
+  //удаляет или восстанавливает отель
+  function delete_or_restore_hotel(key){
+
+    if(curr_view_hotel == 'active'){
+      images_assigne = images_assigne.filter(e=>e.key != key)
+      list_hotels_exclude.push(key)
+    } 
+    else if(curr_view_hotel == 'deleted'){
+      var index = list_hotels_exclude.indexOf(key);
+      if (index > -1) {
+        list_hotels_exclude.splice(index, 1);
+        save_list_hotels_exclude()
+
+        //если список пустой, то переключить на активные
+        if(list_hotels_exclude.length == 0){
+
+          view_active_element.checked = true;
+          view_deleted_element.checked = false;
+
+          toggle_view_hotels({value:'active'})
+        }
+      }
+      images_assigne = images_assigne.filter(e=>e.key != key)
+    } 
+
+    
+
+    show_hotel_list()
+    init_hotels()
+  }
+  
   function show_hotel_list(){
     list_hotel_element.innerHTML = ''
     index = 0
@@ -242,11 +302,12 @@
         class_name = 'good_selected'
       }
 
-      list_hotel_element.innerHTML += `<a href='#' class='${class_name}' onclick="select_hotel(this,'${hotel_obj.key}',${index})">${text}</a><br>`
+      list_hotel_element.innerHTML += `<a href='#' class='delete_link' onclick="delete_or_restore_hotel('${hotel_obj.key}')">X</a>
+                                      <a href='#' class='line_hotel ${class_name}' onclick="select_hotel(this,'${hotel_obj.key}',${index})">${text}</a><br>`
       index++
     }
 
-    list_hotels_a_elemens = list_hotel_element.querySelectorAll('a')
+    list_hotels_a_elemens = list_hotel_element.querySelectorAll('a.line_hotel')
 
     if(list_hotels.length>0){
 
@@ -284,7 +345,7 @@
         assigne_element[key].selected = true
       }
     }
-    images_assigne = images_all.filter(e => e.assigne == assigne_name)
+    images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) == -1)
     init_hotels()
   }
   function on_select_assigne(e) {
@@ -340,20 +401,19 @@
   }
 
   function onkeyup(e) {
-    if (e.key == 'ArrowLeft') {
+    if (e.key == 'ArrowLeft' || e.key == 'a') {
       if (curr_index > 0) {
         curr_index--;
       }
       show_image(curr_index)
     }
-    else if (e.key == 'ArrowRight') {
+    else if (e.key == 'ArrowRight' || e.key == 'd') {
       if (curr_index < images_hotels.length - 1) {
         curr_index++;
       }
       show_image(curr_index)
     }
-    else if (e.key == 'ArrowDown') {
-      
+    else if (e.key == 'ArrowDown' || e.key == 's') {
       if(curr_selected_tag_index<list_tags.length-1){
         curr_selected_tag_index++
         select_tag_by_index(curr_selected_tag_index)
@@ -363,7 +423,7 @@
         select_hotel_by_index(curr_selected_hotel_index)
       }
     }
-    else if (e.key == 'ArrowUp') {
+    else if (e.key == 'ArrowUp' || e.key == 'w') {
       if(curr_selected_tag_index>0){
         curr_selected_tag_index--;
         select_tag_by_index(curr_selected_tag_index)
@@ -373,7 +433,19 @@
         select_hotel_by_index(curr_selected_hotel_index)
       }
     }
-    else if (e.key == '1') {
+    else if (e.key == 'i') {
+      if(curr_selected_hotel_index>0){ 
+        curr_selected_hotel_index--;
+        select_hotel_by_index(curr_selected_hotel_index)
+      }
+    }
+    else if (e.key == 'k') {
+      if(curr_selected_hotel_index < list_hotels.length-1){
+        curr_selected_hotel_index++;
+        select_hotel_by_index(curr_selected_hotel_index)
+      }
+    }
+    else if (e.key == '1' || e.key == 'p') {
       mark_select(curr_index)
     } else {
       //console.log(e)
@@ -389,7 +461,11 @@
     localStorage.setItem('assigne_name',assigne_name)
   }
   function save_selected_images(){
-    localStorage.setItem('selected_image_ids',selected_image_ids) 
+    localStorage.setItem('selected_image_ids',JSON.stringify(selected_image_ids)) 
+  }
+  
+  function save_list_hotels_exclude(){
+    localStorage.setItem('list_hotels_exclude', JSON.stringify(list_hotels_exclude)) 
   }
 
   function mark_select_all_images(){
@@ -411,11 +487,18 @@
     //зазрузить id с выделенными картинками 
     let _selected_image_ids = localStorage.getItem('selected_image_ids')
     if(_selected_image_ids != null){
-      selected_image_ids = _selected_image_ids
+      selected_image_ids = JSON.parse(_selected_image_ids)
       result_element.innerHTML = `Выбрано - ${selected_image_ids.length}`
       mark_select_all_images()
     }
 
+    //загрузить из сессии исключеные отели
+    let _list_hotels_exclude = localStorage.getItem('list_hotels_exclude')
+    console.log('_list_hotels_exclude',_list_hotels_exclude)
+    if(_list_hotels_exclude != null){
+      list_hotels_exclude = JSON.parse(_list_hotels_exclude)
+    }
+    
     //загрузить из сессии пользователя
     let assigne_name = localStorage.getItem('assigne_name')
     if(assigne_name != null){
