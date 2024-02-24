@@ -305,6 +305,7 @@
     if(curr_view_hotel == 'active'){
       images_assigne = images_assigne.filter(e=>e.key != key)
       list_hotels_exclude.push(key)
+      save_list_hotels_exclude()
     } 
     else if(curr_view_hotel == 'deleted'){
       var index = list_hotels_exclude.indexOf(key);
