@@ -399,6 +399,7 @@
 
   function show_image(index) {
     let obj = images_tags[index]
+    image_element.removeAttribute('src')
     image_element.src = obj.url
     title_element.innerHTML = (index + 1).toString() + ' / ' + images_tags.length.toString() + '  ' + obj.city + ' (' + obj.tag_name + ') ' + obj.transaction_info_norm
     if (obj.selected == true) {
