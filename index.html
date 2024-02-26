@@ -182,6 +182,13 @@
   let curr_view_hotel = 'active' //по умолчанию показываются активные отели, но можно переключиться на удаленные (deleted)
   let curr_index = 0
 
+  var groupBy = function(xs, key) {
+    return xs.reduce(function(rv, x) {
+      (rv[x[key]] = rv[x[key]] || []).push(x);
+      return rv;
+    }, {});
+  };
+
   function clear(){
     images_assigne = []
     images_hotels = []
@@ -263,7 +270,7 @@
   }
   function init_tags(){
     list_tags = []
-    let tag_groups = Object.groupBy(images_hotels, ({ key_tag }) => key_tag)
+    let tag_groups = groupBy(images_hotels, 'key_tag')
     for (const key of Object.keys(tag_groups)) {
       const elements = tag_groups[key];
       let city = key.split('____')[0]
@@ -360,7 +367,7 @@
 
   function init_hotels(){
     list_hotels = []
-    let hotel_groups = Object.groupBy(images_assigne, ({ key }) => key)
+    let hotel_groups = groupBy(images_assigne, 'key')
     for (const key of Object.keys(hotel_groups)) {
       const elements = hotel_groups[key];
       let city = key.split('____')[0]
