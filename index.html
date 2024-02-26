@@ -111,7 +111,7 @@
     <p id="result"></p>
     <button onclick="save_to_file()">Donwlod</button>
     <button onclick="clear_cache()">Clear Cache</button>
-    <p style="color: gray;">Листать стрелками, цифра 1 для выбора</p>
+    <p style="color: gray;">Листать стрелками или w,s,a,d, переключение на следущий или предыдущий отель i,k цифра 1 или p для выбора фоток, цифра 2 или u для выбора основной фотки</p>
   </div>
 
 </body>
@@ -139,7 +139,7 @@
 
     for (const obj_select of images_assigne.filter((e) => e.selected)) {
       ////console.log(obj_select)
-      rows.push([obj_select.url])
+      rows.push([obj_select.url, obj_select.selected_main])
     }
 
     let csvContent = "data:text/csv;charset=utf-8,"
@@ -163,6 +163,7 @@
       obj.tag_name = 'Прочее'
     }
     obj.key_tag = obj.city+'____'+obj.transaction_info_norm+'____'+obj.tag_name
+    obj.selected_main = false
   }
 
   let images_assigne = []
@@ -176,6 +177,7 @@
   let curr_selected_hotel_index = null
   result_element.innerHTML = 'Выбрано - 0'
   let selected_image_ids = []
+  let selected_main_image_ids = []
   let curr_selected_tag = null;
   let curr_selected_tag_index = null
   let list_hotels_exclude = []
@@ -410,7 +412,7 @@
     image_element.src = obj.url
     title_element.innerHTML = (index + 1).toString() + ' / ' + images_tags.length.toString() + '  ' + obj.city + ' (' + obj.tag_name + ') ' + obj.transaction_info_norm
     if (obj.selected == true) {
-      is_selected_element.innerHTML = 'Выбрано'
+      is_selected_element.innerHTML = 'Выбрано' + (obj.selected_main ? ' (Основная)':'')
       is_selected_element.style = 'color:green'
     } else {
       is_selected_element.innerHTML = 'не выбрано'
@@ -418,9 +420,21 @@
     }
   }
   
+  function mark_select_main(index) {
+    images_tags[index].selected_main = !images_tags[index].selected_main
+    images_tags[index].selected = !images_tags[index].selected_main //для того чтобы синхронизировать
+
+    selected_main_image_ids = images_assigne.filter((e) => e.selected_main).map(e=>e.id)
+
+    mark_select(index)
+  }
   function mark_select(index) {
     images_tags[index].selected = !images_tags[index].selected
     
+    //если вдруг не выбрана фотка, но при этом выбрана основная фотка, тогда снять выделение с основной фотки
+    if(!images_tags[index].selected && images_tags[index].selected_main){
+      images_tags[index].selected_main = false
+    }
     let hotel_obj = list_hotels[curr_selected_hotel_index]
     hotel_obj.selected_count = images_hotels.filter((e) => e.selected).length
     curr_hotels_a_elemens = list_hotels_a_elemens[curr_selected_hotel_index]
@@ -443,6 +457,7 @@
     //console.log(selected_images)
 
     save_selected_images()
+    save_selected_main_images()
 
     show_image(index)
   }
@@ -492,6 +507,9 @@
         select_hotel_by_index(curr_selected_hotel_index)
       }
     }
+    else if (e.key == '2' || e.key == 'u') {
+      mark_select_main(curr_index)
+    }
     else if (e.key == '1' || e.key == 'p') {
       mark_select(curr_index)
     } else {
@@ -511,6 +529,10 @@
     localStorage.setItem('selected_image_ids',JSON.stringify(selected_image_ids)) 
   }
   
+  function save_selected_main_images(){
+    localStorage.setItem('selected_main_image_ids',JSON.stringify(selected_main_image_ids)) 
+  }
+  
   function save_list_hotels_exclude(){
     localStorage.setItem('list_hotels_exclude', JSON.stringify(list_hotels_exclude)) 
   }
@@ -519,6 +541,9 @@
     for (const obj of images_all) {
       if(selected_image_ids.indexOf(obj.id)!=-1){
         obj.selected = true
+      }
+      if(selected_main_image_ids.indexOf(obj.id) != -1){
+        obj.selected_main = true
       }
     }
   }
@@ -532,6 +557,11 @@
 
   function on_load_page(){
     //зазрузить id с выделенными картинками 
+    let _selected_main_image_ids = localStorage.getItem('selected_main_image_ids')
+    if(_selected_main_image_ids != null){
+      selected_main_image_ids = JSON.parse(_selected_main_image_ids)
+      //mark_select_all_images() обновлять не нужно, так как основная фотка должна быть выбрана как и обычная
+    }
     let _selected_image_ids = localStorage.getItem('selected_image_ids')
     if(_selected_image_ids != null){
       selected_image_ids = JSON.parse(_selected_image_ids)
