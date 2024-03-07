@@ -26,7 +26,7 @@
       display: inline-block;
       vertical-align: top;
       /* width: 350px; */
-      text-align: justify;
+      text-align: left;
       height: 450px;
       overflow-y: auto;
     }
@@ -61,6 +61,61 @@
       justify-content: center;
       align-items: center;
     }
+
+
+    .btn {
+      display: inline-block;
+      margin-bottom: 0;
+      text-align: center;
+      cursor: pointer;
+      background-image: none;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      padding: 0px 10px;
+      font-family: ABBvoice;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 0;
+      height: 18px;
+      padding-bottom: 7px;
+    }
+
+    .btn-default-toggle-ghost,
+    .btn-default-toggle-ghost:focus {
+      background: transparent;
+      border: 1px solid rgba(160, 160, 160, 0.6);
+      color: #464646;
+      outline: none;
+      text-align: center;
+      font-size: 13px;
+      line-height: 24px;
+      position: relative;
+      float: left;
+    }
+
+    .btn-group [type="radio"] {
+      display: none;
+    }
+
+    [type="radio"]:checked+.btn-default-toggle-ghost {
+      background: #DEDEDE;
+    }
+
+    [type="radio"]:checked+.btn-default-toggle-ghost:after {
+      content: '';
+      position: absolute;
+      top: 0px;
+      height: 3px;
+      background: #0093F6;
+      left: 0px;
+      right: 0px;
+    }
+
+    .btn-default-toggle-ghost+[type="radio"]+.btn-default-toggle-ghost{
+    border-left:0px;/*for removing the extra border between the buttons*/
+    }
+
+
   </style>
   <script src="images_all.js"></script>
 </head>
@@ -71,12 +126,12 @@
       <label for="assigne">Выбрать исполнителя</label>
       <select id="assigne" onchange="on_select_assigne(this)">
         <option value=""></option>
-        <option value="Влад">Влад</option>
+        <!-- <option value="Влад">Влад</option>
         <option value="Даниил">Даниил</option>
         <option value="Леша">Леша</option>
         <option value="Максим">Максим</option>
         <option value="Настя">Настя</option>
-        <option value="Оля">Оля</option>
+        <option value="Оля">Оля</option> -->
       </select>
     </div>
   </div>
@@ -87,9 +142,26 @@
   <div style="display: inline-block;">
     <div style="display: flex;">
       <div style="text-align: justify;padding: 10px 0px;    width: 350px;">
-        <input type="radio" value="active"  id="view_active"  name="view_hotel" onchange="toggle_view_hotels(this)" checked /> <label for="view_active">Активные</label>
-        <input type="radio" value="deleted" id="view_deleted" name="view_hotel" onchange="toggle_view_hotels(this)"/><label for="view_deleted">Удаленные</label>
-        <input type="checkbox" id="view_selected" name="view_hotel" onchange="toggle_view_selected(this)"/><label for="view_selected">только выбранные</label>
+        <div style="display: flex;margin: 5px 0px;">
+          <div class="btn-group" data-toggle="buttons">
+            <input type="radio" value="active"  id="view_active" name="view_hotel" onchange="toggle_view_hotels(this)" checked />
+            <label class="btn btn-default-toggle-ghost active" for="view_active">Активные</label>
+            <input type="radio" value="deleted" id="view_deleted" name="view_hotel" onchange="toggle_view_hotels(this)"/>
+            <label class="btn btn-default-toggle-ghost active" for="view_deleted">Удаленные</label>
+          </div>
+        </div>
+        <div style="display: flex;margin: 5px 0px;">
+          <div class="btn-group" data-toggle="buttons">
+            <input type="radio" value="all" id="selected_all" name="view_hotel_selected" onchange="toggle_view_selected(this)" checked="checked"/> 
+            <label class="btn btn-default-toggle-ghost active" for="selected_all">все</label>
+            <input type="radio" value="selected" id="selected_selected" name="view_hotel_selected" onchange="toggle_view_selected(this)"/> 
+            <label class="btn btn-default-toggle-ghost active" for="selected_selected">выбранные</label>
+            <input type="radio" value="selected_main" id="selected_selected_main" name="view_hotel_selected" onchange="toggle_view_selected(this)"/> 
+            <label class="btn btn-default-toggle-ghost active" for="selected_selected_main">основные</label>
+            <input type="radio" value="selected_not_main" id="selected_selected_not_main" name="view_hotel_selected" onchange="toggle_view_selected(this)"/> 
+            <label class="btn btn-default-toggle-ghost active" for="selected_selected_not_main">без основных</label>
+          </div>
+        </div>
       </div>
       <div style="display: flex;    width: 180px;">
 
@@ -156,33 +228,59 @@
 
     //link.click(); // This will download the data file named "my_data.csv".
   }
-
+  let list_assigne = {
+    "Анапа":"Рома",
+    "Владивосток":"Настя Ду",
+    "Воронеж":"Антон З",
+    "Геленджик":"Кирилл С",
+    "Екатеринбург":"Николай",
+    "Казань":"Кирилл П",
+    "Калининград":"Амид",
+    "Краснодар":"Настя Г",
+    "Москва":"Полина",
+    "Нижний Новгород":"Егор",
+    "Новосибирск":"Павел",
+    "Ростов-на-Дону":"Настя Дос",
+    "Самара":"Станислав",
+    "Санкт-Петербург":"Регина",
+    "Сочи":"Владислав",
+    "Уфа":"Сергей",
+  }
+  for (const key of Object.keys(list_assigne)) {
+    const assigne_nm = list_assigne[key];
+    let option = document.createElement('option')
+    option.value = assigne_nm
+    option.text = assigne_nm
+    assigne_element.appendChild(option)
+  }
   for(const obj of images_all){
-    obj.key = obj.city+'____'+obj.transaction_info_norm
+    obj.key = obj.city+'____'+obj.transaction_info_norm+'_('+obj.ya_company_name + ')'
     if(obj.tag_name == '') {
       obj.tag_name = 'Прочее'
     }
-    obj.key_tag = obj.city+'____'+obj.transaction_info_norm+'____'+obj.tag_name
-    obj.selected_main = false
+    obj.key_tag = obj.city+'____'+obj.transaction_info_norm+'_'+obj.ya_company_name+'____'+obj.tag_name
+    obj.assigne = list_assigne[obj.city]
+    //obj.selected_main = false
+    //obj.selected = false
   }
 
-  let images_assigne = []
-  let images_hotels = []
-  let images_tags = []
-  let list_hotels = []
-  let list_tags = []
-  let list_hotels_a_elemens = []
-  let list_tags_a_elemens = []
-  let curr_selected_hotel = null
-  let curr_selected_hotel_index = null
+  let images_assigne = [] //фотки относящиеся к выбранному ответственному
+  let images_hotels = [] //список всех фоток по одному выбранному отелю
+  let images_tags = []  //список всех фоток по одному тегу одного выбранного отеля
+  let list_hotels = [] //уникальный список отелей по городам (выбранные по исполнителю)
+  let list_tags = []  //уникальный список тегов по выбранному отелю
+  let list_hotels_a_elemens = [] //уникальный список элементов тега 'a' по отелям (нужен для того чтобы обновлять текс - количество выбранных и помечать выделение) 
+  let list_tags_a_elemens = [] //уникальный список элементов тега 'a' по тегам (нужен для того чтобы обновлять текс - количество выбранных и помечать выделение)
+  let curr_selected_hotel = null //текущий выбранный элемент тега 'а' по отелю
+  let curr_selected_hotel_index = null //текущий выбранный индекс отеля из списка list_hotels
   result_element.innerHTML = 'Выбрано - 0'
-  let selected_image_ids = []
-  let selected_main_image_ids = []
+  let selected_image_urls = []
+  let selected_main_image_urls = []
   let curr_selected_tag = null;
   let curr_selected_tag_index = null
   let list_hotels_exclude = []
   let curr_view_hotel = 'active' //по умолчанию показываются активные отели, но можно переключиться на удаленные (deleted)
-  let curr_index = 0
+  let curr_index = 0 //текущий выбранный индекс фотки из списка images_tags
 
   var groupBy = function(xs, key) {
     return xs.reduce(function(rv, x) {
@@ -207,17 +305,29 @@
   }
   function toggle_view_selected(obj){
     let assigne_name = assigne_element.value
-    if(obj.checked){
-      images_assigne = images_all.filter(e => e.assigne == assigne_name && e.selected)
+    if(obj.value=="all") {
+      toggle_view_hotels({value:curr_view_hotel})
+    }
+    else{
+      let _images_assigne = []
       if(curr_view_hotel=="active") {
-        images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) == -1 && e.selected)
+      _images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) == -1)
       }
-      if(curr_view_hotel=="deleted") {
-        images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) != -1 && e.selected)
+      else if(curr_view_hotel=="deleted") {
+        _images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) != -1)
+      }
+      if(obj.value=="selected") {
+        images_assigne = _images_assigne.filter(e => e.selected)
+      }
+      else if(obj.value=="selected_main") {
+        images_assigne = _images_assigne.filter(e => e.selected_main)
+      }
+      else if(obj.value=="selected_not_main") {
+        let _images_assigne_selected = _images_assigne.filter(e => e.selected_main).map(e=>e.ya_id)
+        
+        images_assigne = _images_assigne.filter(e=>_images_assigne_selected.indexOf(e.ya_id) == -1)
       }
       init_hotels()
-    } else{
-      toggle_view_hotels({value:curr_view_hotel})
     }
   }
   //переключатель показывать активные Отели или не активные
@@ -394,6 +504,7 @@
       }
     }
     images_assigne = images_all.filter(e => e.assigne == assigne_name && list_hotels_exclude.indexOf(e.key) == -1)
+    result_element.innerHTML = 'Выбрано - ' + images_assigne.filter((e) => e.selected).length
     init_hotels()
   }
   function on_select_assigne(e) {
@@ -424,7 +535,7 @@
     images_tags[index].selected_main = !images_tags[index].selected_main
     images_tags[index].selected = !images_tags[index].selected_main //для того чтобы синхронизировать
 
-    selected_main_image_ids = images_assigne.filter((e) => e.selected_main).map(e=>e.id)
+    selected_main_image_urls = images_assigne.filter((e) => e.selected_main).map(e=>e.url)
 
     mark_select(index)
   }
@@ -453,7 +564,7 @@
     }
     result_element.innerHTML = 'Выбрано - ' + images_assigne.filter((e) => e.selected).length
 
-    selected_image_ids = images_assigne.filter((e) => e.selected).map(e=>e.id)
+    selected_image_urls = images_assigne.filter((e) => e.selected).map(e=>e.url)
     //console.log(selected_images)
 
     save_selected_images()
@@ -526,11 +637,11 @@
     localStorage.setItem('assigne_name',assigne_name)
   }
   function save_selected_images(){
-    localStorage.setItem('selected_image_ids',JSON.stringify(selected_image_ids)) 
+    localStorage.setItem('selected_image_urls',JSON.stringify(selected_image_urls)) 
   }
   
   function save_selected_main_images(){
-    localStorage.setItem('selected_main_image_ids',JSON.stringify(selected_main_image_ids)) 
+    localStorage.setItem('selected_main_image_urls',JSON.stringify(selected_main_image_urls)) 
   }
   
   function save_list_hotels_exclude(){
@@ -539,10 +650,10 @@
 
   function mark_select_all_images(){
     for (const obj of images_all) {
-      if(selected_image_ids.indexOf(obj.id)!=-1){
+      if(selected_image_urls.indexOf(obj.url)!=-1){
         obj.selected = true
       }
-      if(selected_main_image_ids.indexOf(obj.id) != -1){
+      if(selected_main_image_urls.indexOf(obj.url) != -1){
         obj.selected_main = true
       }
     }
@@ -557,15 +668,15 @@
 
   function on_load_page(){
     //зазрузить id с выделенными картинками 
-    let _selected_main_image_ids = localStorage.getItem('selected_main_image_ids')
-    if(_selected_main_image_ids != null){
-      selected_main_image_ids = JSON.parse(_selected_main_image_ids)
+    let _selected_main_image_urls = localStorage.getItem('selected_main_image_urls')
+    if(_selected_main_image_urls != null){
+      selected_main_image_urls = JSON.parse(_selected_main_image_urls)
       //mark_select_all_images() обновлять не нужно, так как основная фотка должна быть выбрана как и обычная
     }
-    let _selected_image_ids = localStorage.getItem('selected_image_ids')
-    if(_selected_image_ids != null){
-      selected_image_ids = JSON.parse(_selected_image_ids)
-      result_element.innerHTML = `Выбрано - ${selected_image_ids.length}`
+    let _selected_image_urls = localStorage.getItem('selected_image_urls')
+    if(_selected_image_urls != null){
+      selected_image_urls = JSON.parse(_selected_image_urls)
+      result_element.innerHTML = `Выбрано - ${selected_image_urls.length}`
       mark_select_all_images()
     }
 
