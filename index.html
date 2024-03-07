@@ -184,6 +184,10 @@
     <button onclick="save_to_file()">Donwlod</button>
     <button onclick="clear_cache()">Clear Cache</button>
     <p style="color: gray;">Листать стрелками или w,s,a,d, переключение на следущий или предыдущий отель i,k цифра 1 или p для выбора фоток, цифра 2 или u для выбора основной фотки</p>
+    <div style="padding: 10px;">
+      <span>По любым вопросам пишите в телегу:</span>
+      <a href="https://t.me/aleksei_korobov" target="_blank">@aleksei_korobov</a>
+    </div>
   </div>
 
 </body>
@@ -254,7 +258,7 @@
     assigne_element.appendChild(option)
   }
   for(const obj of images_all){
-    obj.key = obj.city+'____'+obj.transaction_info_norm+'_('+obj.ya_company_name + ')'
+    obj.key = obj.city+'____'+obj.transaction_info_norm+'_('+obj.ya_company_name+':'+obj.ya_id + ')'
     if(obj.tag_name == '') {
       obj.tag_name = 'Прочее'
     }
