@@ -518,6 +518,17 @@
       assigne_element.blur(); //снять фокус, чтобы горячие клавишы работали
       select_assigne(assigne_name)
       save_assigne(assigne_name)
+
+      let _selected_image_urls = localStorage.getItem('selected_image_urls')
+      if(_selected_image_urls == null || _selected_image_urls.length == 0){
+        selected_image_urls = images_assigne.filter(e=>e.selected ).map(e=>e.url)
+      }
+      save_selected_images()
+      let _selected_main_image_urls = localStorage.getItem('selected_main_image_urls')
+      if(_selected_main_image_urls == null || _selected_main_image_urls.length == 0){
+        selected_main_image_urls = images_assigne.filter(e=>e.selected_main).map(e=>e.url)
+      }
+      save_selected_main_images()
     }
   }
 
@@ -656,9 +667,13 @@
     for (const obj of images_all) {
       if(selected_image_urls.indexOf(obj.url)!=-1){
         obj.selected = true
+      } else{
+        obj.selected = false
       }
       if(selected_main_image_urls.indexOf(obj.url) != -1){
         obj.selected_main = true
+      } else{
+        obj.selected_main = false
       }
     }
   }
