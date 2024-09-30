@@ -117,7 +117,7 @@
 
 
   </style>
-  <script src="images_all.js?v=4"></script>
+  <script src="images_all.js?v=6"></script>
 </head>
 
 <body id="body">
@@ -250,19 +250,62 @@
     "Сочи":"Владислав",
     "Уфа":"Сергей",
   }
+
+  list_assigne = {
+    "Анапа":"Алексей",
+    "Владивосток":"Алексей",
+    "Воронеж":"Алексей",
+    "Геленджик":"Алексей",
+    "Екатеринбург":"Алексей",
+    "Казань":"Алексей",
+    "Калининград":"Алексей",
+    "Краснодар":"Алексей",
+    "Москва":"Алексей",
+    "Нижний Новгород":"Алексей",
+    "Новосибирск":"Алексей",
+    "Ростов-на-Дону":"Алексей",
+    "Самара":"Алексей",
+    "Санкт-Петербург":"Алексей",
+    "Сочи":"Алексей",
+    "Уфа":"Алексей",
+  }
+  list_assigne = {
+    "Анапа":"ALL",
+    "Владивосток":"ALL",
+    "Воронеж":"ALL",
+    "Геленджик":"ALL",
+    "Екатеринбург":"ALL",
+    "Казань":"ALL",
+    "Калининград":"ALL",
+    "Краснодар":"ALL",
+    "Москва":"ALL",
+    "Нижний Новгород":"ALL",
+    "Новосибирск":"ALL",
+    "Ростов-на-Дону":"ALL",
+    "Самара":"ALL",
+    "Санкт-Петербург":"ALL",
+    "Сочи":"ALL",
+    "Уфа":"ALL",
+  }
+
+  unique_assigne = []
+
   for (const key of Object.keys(list_assigne)) {
     const assigne_nm = list_assigne[key];
-    let option = document.createElement('option')
-    option.value = assigne_nm
-    option.text = assigne_nm
-    assigne_element.appendChild(option)
+    if(unique_assigne.indexOf(assigne_nm) == -1){
+      let option = document.createElement('option')
+      option.value = assigne_nm
+      option.text = assigne_nm
+      assigne_element.appendChild(option)
+      unique_assigne.push(assigne_nm)
+    }
   }
   for(const obj of images_all){
     obj.key = obj.city+'____'+obj.transaction_info_norm+'_('+obj.ya_company_name+':'+obj.ya_id + ')'
     if(obj.tag_name == '') {
       obj.tag_name = 'Прочее'
     }
-    obj.key_tag = obj.city+'____'+obj.transaction_info_norm+'_'+obj.ya_company_name+'____'+obj.tag_name
+    obj.key_tag = obj.city+'____'+obj.transaction_info_norm+'_('+obj.ya_company_name+':'+obj.ya_id + ')____'+obj.tag_name
     obj.assigne = list_assigne[obj.city]
     //obj.selected_main = false
     //obj.selected = false
@@ -525,6 +568,7 @@
   function show_image(index) {
     let obj = images_tags[index]
     image_element.removeAttribute('src')
+    console.log(obj.url)
     image_element.src = obj.url
     title_element.innerHTML = (index + 1).toString() + ' / ' + images_tags.length.toString() + '  ' + obj.city + ' (' + obj.tag_name + ') ' + obj.transaction_info_norm
     if (obj.selected == true) {
